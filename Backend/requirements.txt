@@ -1,0 +1,4 @@
+drf-yasg
+Django>=4.2,<5
+djangorestframework>=3.14
+djangorestframework-simplejwt>=5.2
