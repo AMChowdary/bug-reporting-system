@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 export default function Navbar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    navigate("/");
-  };
+ const handleLogout = () => {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  window.location.href = "/login";
+};
+
 
   return (
     <nav style={{ padding: "10px", borderBottom: "1px solid #ccc" }}>
