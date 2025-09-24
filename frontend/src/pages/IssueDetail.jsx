@@ -10,24 +10,45 @@ export default function IssueDetail() {
   const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
-    API.get(`issues/${id}/`)
-      .then((res) => setIssue(res.data))
-      .catch(() => alert("Failed to load issue"));
-
-    API.get(`issues/${id}/comments/`)
-      .then((res) => setComments(res.data))
-      .catch(() => alert("Failed to load comments"));
-  }, [id]);
-
-  const handleAddComment = async () => {
+  const load = async () => {
     try {
-      const res = await API.post(`issues/${id}/comments/`, { content: newComment });
-      setComments([...comments, res.data]);
-      setNewComment("");
+      const issueRes = await API.get(`issues/${id}/`);
+      setIssue(issueRes.data);
     } catch (err) {
-      alert("Failed to add comment");
+      console.error("load issue:", err);
+    }
+
+    try {
+      const commentsRes = await API.get(`issues/${id}/comments/`);
+      const commentData = Array.isArray(commentsRes.data)
+        ? commentsRes.data
+        : (commentsRes.data.results ?? []);
+      setComments(commentData);
+    } catch (err) {
+      console.error("load comments:", err);
     }
   };
+  load();
+}, [id]);
+
+const handleAddComment = async () => {
+  try {
+    const res = await API.post(`issues/${id}/comments/`, { content: newComment });
+    // If backend returns single created comment object:
+    if (res.data && res.data.id) {
+      setComments((prev) => [...prev, res.data]);
+    } else {
+      // fallback: re-fetch comments (safe)
+      const r = await API.get(`issues/${id}/comments/`);
+      setComments(Array.isArray(r.data) ? r.data : (r.data.results ?? []));
+    }
+    setNewComment("");
+  } catch (err) {
+    console.error("add comment:", err);
+    alert("Failed to add comment");
+  }
+};
+
 
   if (!issue) return <p>Loading...</p>;
 
@@ -40,9 +61,10 @@ export default function IssueDetail() {
 
       <h3>Comments</h3>
       <ul>
-        {comments.map((c) => (
-          <li key={c.id}>{c.content} — by {c.author}</li>
+        {comments.map(c => (
+            <li key={c.id}>{c.content} — by {c.author?.username ?? c.author}</li>
         ))}
+
       </ul>
 
       <input

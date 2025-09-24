@@ -144,3 +144,12 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     # Add other settings as needed
 }
+
+INSTALLED_APPS += ["corsheaders"]
+
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    *MIDDLEWARE,
+]
+
+CORS_ALLOW_ALL_ORIGINS = True  # (for development)

@@ -14,21 +14,20 @@ class Project(models.Model):
 
 class Issue(models.Model):
     STATUS_CHOICES = [
-        ("open", "Open"),
-        ("in_progress", "In Progress"),
-        ("closed", "Closed"),
+        ("Open", "Open"),
+        ("In Progress", "In Progress"),
+        ("Closed", "Closed"),
     ]
     PRIORITY_CHOICES = [
-        ("low", "Low"),
-        ("medium", "Medium"),
-        ("high", "High"),
-        ("critical", "Critical"),
+        ("LOW", "Low"),
+        ("MEDIUM", "Medium"),
+        ("HIGH", "High"),
     ]
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="MEDIUM")
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
-    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="issues")

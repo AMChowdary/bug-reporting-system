@@ -6,12 +6,24 @@ import Navbar from "../components/Navbar";
 export default function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState({ name: "", description: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const fetchProjects = () => {
-    API.get("projects/")
-      .then((res) => setProjects(res.data))
-      .catch(() => alert("Failed to load projects"));
+  const fetchProjects = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await API.get("projects/");
+      // support both plain-array and paginated response
+      const data = Array.isArray(res.data) ? res.data : (res.data.results ?? []);
+      setProjects(data);
+    } catch (err) {
+      console.error("fetchProjects error:", err);
+      setError("Failed to load projects");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -24,7 +36,8 @@ export default function Dashboard() {
       await API.post("projects/", newProject);
       setNewProject({ name: "", description: "" });
       fetchProjects();
-    } catch {
+    } catch (err) {
+      console.error("create project error:", err);
       alert("Failed to create project");
     }
   };
@@ -33,6 +46,7 @@ export default function Dashboard() {
     <div>
       <Navbar />
       <h2>Projects</h2>
+
       <form onSubmit={handleCreateProject}>
         <input
           type="text"
@@ -49,13 +63,19 @@ export default function Dashboard() {
         <button type="submit">Create Project</button>
       </form>
 
-      <ul>
-        {projects.map((p) => (
-          <li key={p.id} onClick={() => navigate(`/projects/${p.id}/issues`)}>
-            {p.name} — {p.description}
-          </li>
-        ))}
-      </ul>
+      {loading ? (
+        <p>Loading projects...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : (
+        <ul>
+          {projects.map((p) => (
+            <li key={p.id} onClick={() => navigate(`/projects/${p.id}/issues`)}>
+              {p.name} — {p.description}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

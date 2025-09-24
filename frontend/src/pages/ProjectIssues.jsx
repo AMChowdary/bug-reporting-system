@@ -6,7 +6,7 @@ import Navbar from "../components/Navbar";
 export default function ProjectIssues() {
   const { id } = useParams();
   const [issues, setIssues] = useState([]);
-  const [newIssue, setNewIssue] = useState({ title: "", description: "", priority: "Medium" });
+  const [newIssue, setNewIssue] = useState({ title: "", description: "", priority: "MEDIUM" });
   const navigate = useNavigate();
 
   const fetchIssues = () => {
@@ -16,26 +16,47 @@ export default function ProjectIssues() {
   };
 
   useEffect(() => {
-    fetchIssues();
-  }, [id]);
+  const fetchIssues = async () => {
+  try {
+    const res = await API.get(`projects/${id}/issues/`);
+    const data = Array.isArray(res.data)
+      ? res.data
+      : (res.data.results ?? []);  // handles paginated response
+    setIssues(data);
+  } catch (err) {
+    console.error("fetch issues error:", err.response?.data || err);
+    alert("Failed to load issues");
+  }
+};
 
-  const handleCreateIssue = async (e) => {
-    e.preventDefault();
-    try {
-      await API.post(`projects/${id}/issues/`, newIssue);
-      setNewIssue({ title: "", description: "", priority: "Medium" });
-      fetchIssues();
-    } catch {
-      alert("Failed to create issue");
-    }
-  };
+  fetchIssues();
+}, [id]);
+
+
+  const handleAddIssue = async (e) => {
+  e.preventDefault();
+  try {
+    await API.post(`projects/${id}/issues/`, {
+      title: newIssue.title,
+      description: newIssue.description,
+      priority: newIssue.priority || "Low",
+      status: "Open"
+    });
+    setNewIssue({ title: "", description: "", priority: "Low" });
+    fetchIssues();
+  } catch (err) {
+    console.error("create issue error:", err.response?.data || err);
+    alert("Failed to create issue");
+  }
+};
+
 
   return (
     <div>
       <Navbar />
       <h2>Issues</h2>
 
-      <form onSubmit={handleCreateIssue}>
+      <form onSubmit={handleAddIssue}>
         <input
           type="text"
           placeholder="Issue title"
@@ -48,14 +69,12 @@ export default function ProjectIssues() {
           value={newIssue.description}
           onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })}
         />
-        <select
-          value={newIssue.priority}
-          onChange={(e) => setNewIssue({ ...newIssue, priority: e.target.value })}
-        >
-          <option>Low</option>
-          <option>Medium</option>
-          <option>High</option>
+        <select value={newIssue.priority} onChange={(e) => setNewIssue({ ...newIssue, priority: e.target.value })}>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
         </select>
+
         <button type="submit">Create Issue</button>
       </form>
 
