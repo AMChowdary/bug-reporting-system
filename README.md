@@ -88,7 +88,7 @@ Response:
 🧪 Running Tests
 cd backend
 pytest
-# OR
+
 python manage.py test
 
 📦 Docker (Upcoming)
